@@ -12,7 +12,7 @@ import { useTesla } from '../../context/TeslaContext';
 import { Lock, Unlock, Fan, Zap, Car } from 'lucide-react-native';
 
 export const QuickActionBar: React.FC = () => {
-  const { state, toggleLock, toggleClimate, setViewMode } = useTesla();
+  const { state, toggleLock, setViewMode } = useTesla();
   const spin = useSharedValue(0);
 
   useEffect(() => {
@@ -47,10 +47,7 @@ export const QuickActionBar: React.FC = () => {
 
       <TouchableOpacity
         style={styles.actionBtn}
-        onPress={() => {
-          toggleClimate();
-          setViewMode('climate');
-        }}
+        onPress={() => setViewMode('climate')}
       >
         <Animated.View style={fanSpinStyle}>
           <Fan color="#E5E5EA" size={24} />

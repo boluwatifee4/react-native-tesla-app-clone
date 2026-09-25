@@ -1,10 +1,15 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTesla } from '../../context/TeslaContext';
-import { Power, Flame, Snowflake, ChevronLeft, ChevronRight, Wind } from 'lucide-react-native';
+import { Power, Flame, Snowflake, ChevronLeft, ChevronRight, Wind, Fan } from 'lucide-react-native';
 
-export const ClimateDrawer: React.FC = () => {
-  const { state, toggleClimate, setTargetTemp, toggleDefrost, cycleSeatHeater } = useTesla();
+interface ClimateDrawerProps {
+  expanded?: boolean;
+}
+
+export const ClimateDrawer: React.FC<ClimateDrawerProps> = ({ expanded = false }) => {
+  const { state, toggleClimate, setTargetTemp, setFanSpeed, toggleDefrost, cycleSeatHeater } =
+    useTesla();
 
   const handleTempDown = () => setTargetTemp(state.targetTemp - 1);
   const handleTempUp = () => setTargetTemp(state.targetTemp + 1);
@@ -42,6 +47,8 @@ export const ClimateDrawer: React.FC = () => {
         </TouchableOpacity>
       </View>
 
+      {expanded && (
+        <>
       {/* Climate Airflow Thermal State Indicator */}
       <View style={styles.thermalStateBar}>
         <View
@@ -50,7 +57,12 @@ export const ClimateDrawer: React.FC = () => {
             state.isHeating ? styles.heatingPill : styles.coolingPill,
           ]}
         >
-          {state.isHeating ? (
+          {state.defrostActive ? (
+            <>
+              <Wind color="#FF3B30" size={18} />
+              <Text style={styles.heatingText}>Defrost Active</Text>
+            </>
+          ) : state.isHeating ? (
             <>
               <Flame color="#FF3B30" size={18} />
               <Text style={styles.heatingText}>Heating Active</Text>
@@ -62,6 +74,33 @@ export const ClimateDrawer: React.FC = () => {
             </>
           )}
         </View>
+      </View>
+
+      {/* Fan Speed: shared 1-10 setting (drives home fan spin + airflow ripple speed) */}
+      <Text style={styles.sectionTitle}>Fan Speed</Text>
+      <View style={styles.fanRow}>
+        <Fan color={state.isHeating ? '#FF3B30' : '#00F2FE'} size={20} />
+        <View style={styles.fanSegments}>
+          {Array.from({ length: 10 }, (_, i) => (
+            <TouchableOpacity
+              key={`fan-${i + 1}`}
+              style={styles.fanSegmentHit}
+              onPress={() => setFanSpeed(i + 1)}
+              accessibilityRole="button"
+              accessibilityLabel={`Fan speed ${i + 1}`}
+            >
+              <View
+                style={[
+                  styles.fanSegment,
+                  i < state.fanSpeed && {
+                    backgroundColor: state.isHeating ? '#FF3B30' : '#00F2FE',
+                  },
+                ]}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
+        <Text style={styles.fanValue}>{state.fanSpeed}</Text>
       </View>
 
       {/* Seat Heating Grid (5 Seat Selectors) */}
@@ -189,6 +228,8 @@ export const ClimateDrawer: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </View>
+        </>
+      )}
     </View>
   );
 };
@@ -196,17 +237,18 @@ export const ClimateDrawer: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 4,
+    paddingBottom: 24,
     backgroundColor: '#121214',
   },
   tempHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 10,
+    paddingVertical: 4,
   },
   tempBtn: {
-    padding: 10,
+    padding: 6,
     backgroundColor: '#1C1C1E',
     borderRadius: 20,
   },
@@ -236,6 +278,34 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
+  },
+  fanRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 4,
+  },
+  fanSegments: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 4,
+  },
+  fanSegmentHit: {
+    flex: 1,
+    height: 32,
+    justifyContent: 'center',
+  },
+  fanSegment: {
+    height: 10,
+    borderRadius: 3,
+    backgroundColor: '#2C2C2E',
+  },
+  fanValue: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+    width: 18,
+    textAlign: 'right',
   },
   coolingPill: {
     backgroundColor: 'rgba(0, 242, 254, 0.1)',

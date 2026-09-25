@@ -76,8 +76,20 @@ export const TeslaProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }));
   };
 
+  const setFanSpeed = (speed: number) => {
+    setState((prev) => ({
+      ...prev,
+      fanSpeed: Math.min(10, Math.max(1, speed)),
+    }));
+  };
+
   const toggleDefrost = () => {
-    setState((prev) => ({ ...prev, defrostActive: !prev.defrostActive }));
+    setState((prev) => ({
+      ...prev,
+      defrostActive: !prev.defrostActive,
+      // Real behavior: turning defrost on forces the HVAC system on.
+      climateActive: !prev.defrostActive ? true : prev.climateActive,
+    }));
   };
 
   const cycleSeatHeater = (seatKey: keyof TeslaState['seatHeaters']) => {
@@ -118,6 +130,7 @@ export const TeslaProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         toggleTrunk,
         toggleClimate,
         setTargetTemp,
+        setFanSpeed,
         toggleDefrost,
         cycleSeatHeater,
         setCarColor,

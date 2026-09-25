@@ -28,6 +28,9 @@ const DOOR_OPEN_ANGLE = 0.7;
 
 const LID_OPEN_ANGLE = 0.85;
 
+const SEAT_WARM_TINT = new THREE.Color('#FF4A2E');
+const SEAT_GLOW_BACKUP = new WeakMap<THREE.Material, THREE.Color>();
+
 type TapAction =
   | { type: 'door'; key: DoorKey }
   | { type: 'frunk' }
@@ -168,6 +171,47 @@ export const Tesla3DCarModel: React.FC = () => {
       }
     });
   }, [scene, state.carColor]);
+
+  // Heated seats: warm tint + emissive glow on the seat leather, scaled by
+  // the highest seat level (0 restores the original color).
+  useEffect(() => {
+    if (!scene) return;
+    const levels = state.seatHeaters;
+    const maxLevel = Math.max(
+      levels.driver,
+      levels.passenger,
+      levels.rearLeft,
+      levels.rearCenter,
+      levels.rearRight
+    );
+    let matched = 0;
+    scene.traverse((child: any) => {
+      if (!child.isMesh || !child.material) return;
+      const materials: any[] = Array.isArray(child.material)
+        ? child.material
+        : [child.material];
+      for (const mat of materials) {
+        if (!mat || !mat.color || !('emissive' in mat)) continue;
+        const label = `${mat.name || ''} ${child.name || ''}`.toLowerCase();
+        if (!label.includes('seat') && !label.includes('leather')) continue;
+        matched += 1;
+        if (!SEAT_GLOW_BACKUP.has(mat)) {
+          SEAT_GLOW_BACKUP.set(mat, mat.color.clone());
+        }
+        const base = SEAT_GLOW_BACKUP.get(mat) as THREE.Color;
+        if (maxLevel > 0) {
+          mat.color.copy(base).lerp(SEAT_WARM_TINT, maxLevel * 0.18);
+          mat.emissive.set('#FF3B30');
+          mat.emissiveIntensity = maxLevel * 0.28;
+        } else {
+          mat.color.copy(base);
+          mat.emissive.set('#000000');
+          mat.emissiveIntensity = 0;
+        }
+      }
+    });
+    console.log('[TESLA3DDEBUG] seat glow level', maxLevel, 'matched', matched);
+  }, [scene, state.seatHeaters]);
 
   // Smooth door swing / driving tilt animation
   useFrame((_, delta) => {

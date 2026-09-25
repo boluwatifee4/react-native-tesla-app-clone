@@ -65,7 +65,7 @@ const MainScreen: React.FC = () => {
               viewMode === 'controls' ? (
                 <ControlsDrawer expanded={expanded} />
               ) : (
-                <ClimateDrawer />
+                <ClimateDrawer expanded={expanded} />
               )
             }
           </BottomSheet>

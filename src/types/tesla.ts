@@ -52,6 +52,7 @@ export interface TeslaContextType {
   toggleTrunk: () => void;
   toggleClimate: () => void;
   setTargetTemp: (temp: number) => void;
+  setFanSpeed: (speed: number) => void;
   toggleDefrost: () => void;
   cycleSeatHeater: (seatKey: keyof TeslaState['seatHeaters']) => void;
   setCarColor: (color: string) => void;

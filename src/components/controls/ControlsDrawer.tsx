@@ -18,14 +18,10 @@ interface ControlsDrawerProps {
 
 export const ControlsDrawer: React.FC<ControlsDrawerProps> = ({ expanded = false }) => {
   const { state, toggleFrunk, toggleTrunk, toggleLock, toggleHeadlights } = useTesla();
+  console.log('[TESLA3DDEBUG] ControlsDrawer mounted, expanded=', expanded);
 
   return (
-    <View
-      style={[
-        styles.container,
-        !expanded && styles.containerBottomPinned,
-      ]}
-    >
+    <View style={styles.container}>
       {/* Quick actions: bare outline icons (always visible) */}
       <View style={styles.quickRow}>
         <TouchableOpacity style={styles.quickBtn} onPress={toggleFrunk}>
@@ -129,13 +125,6 @@ const styles = StyleSheet.create({
     paddingTop: 4,
     paddingBottom: 24,
     backgroundColor: '#121214',
-  },
-  // Collapsed: fill the sheet and pin the quick actions to the bottom so
-  // there is always a guaranteed gap above the nav/gesture area.
-  containerBottomPinned: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    paddingTop: 0,
   },
   quickRow: {
     flexDirection: 'row',

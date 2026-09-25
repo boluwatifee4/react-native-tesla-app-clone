@@ -103,7 +103,14 @@ const ThreeJSCanvasContent: React.FC = () => {
   const { state, viewMode, toggleFrunk, toggleTrunk, toggleLock } = useTesla();
   const [airflowGeom, setAirflowGeom] = useState<AirflowGeom | null>(null);
   const [pillAnchors, setPillAnchors] = useState<CarPillAnchors | null>(null);
-  const airflowActive = viewMode === 'home' && state.climateActive;
+  const airflowActive =
+    (viewMode === 'home' || viewMode === 'climate') && state.climateActive;
+  const airflowVariant: 'home' | 'climate' | 'defrost' =
+    viewMode !== 'climate'
+      ? 'home'
+      : state.defrostActive
+        ? 'defrost'
+        : 'climate';
   const { height: windowH } = useWindowDimensions();
   const canvasHeight = canvasHeightFor(viewMode, windowH);
   const pillsActive = viewMode === 'controls';
@@ -119,7 +126,11 @@ const ThreeJSCanvasContent: React.FC = () => {
         <React.Suspense fallback={null}>
           <Tesla3DCarModel />
         </React.Suspense>
-        <CabinAnchorProbe active={airflowActive} onChange={setAirflowGeom} />
+        <CabinAnchorProbe
+          active={airflowActive}
+          variant={airflowVariant}
+          onChange={setAirflowGeom}
+        />
         <CarAnchorProbe active={pillsActive} onChange={setPillAnchors} />
       </Canvas>
 
@@ -129,6 +140,7 @@ const ThreeJSCanvasContent: React.FC = () => {
           geom={airflowGeom}
           heating={state.isHeating}
           speed={state.fanSpeed}
+          variant={airflowVariant}
         />
       )}
 
