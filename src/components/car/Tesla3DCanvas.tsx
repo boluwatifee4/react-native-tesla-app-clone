@@ -49,9 +49,8 @@ const scratchPos = new THREE.Vector3();
 const scratchLook = new THREE.Vector3();
 const scratchUp = new THREE.Vector3();
 
-// Frame-rate independent, always-bounded smoothing (lerp factor never exceeds 1)
-const smoothFactor = (delta: number, rate: number) =>
-  1 - Math.exp(-rate * Math.min(delta, 0.1));
+// Frame-rate independent, always-bounded smoothing (factor is always < 1, no clamp needed)
+const smoothFactor = (delta: number, rate: number) => 1 - Math.exp(-rate * delta);
 
 // Camera Rig that smoothly lerps position based on active screen mode
 const CameraRig: React.FC = () => {
