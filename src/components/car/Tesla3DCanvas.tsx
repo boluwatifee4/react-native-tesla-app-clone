@@ -1,10 +1,17 @@
-import React, { Component, ErrorInfo, ReactNode, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import React, { Component, ErrorInfo, ReactNode, useEffect, useState } from 'react';
+import { View, StyleSheet, TouchableOpacity, Text, useWindowDimensions } from 'react-native';
 import { Canvas, useFrame, useThree } from '@react-three/fiber/native';
 import * as THREE from 'three';
 import { Tesla3DCarModel } from './Tesla3DCarModel';
+import { CabinAirflowOverlay } from './CabinAirflowOverlay';
+import { CabinAnchorProbe } from './CabinAnchorProbe';
+import type { AirflowGeom } from './CabinAnchorProbe';
+import { CarAnchorProbe } from './CarAnchorProbe';
+import type { CarPillAnchors } from './CarAnchorProbe';
 import { TeslaSvgCarCanvas } from './TeslaSvgCarCanvas';
+import { Lock, Unlock } from 'lucide-react-native';
 import { useTesla } from '../../context/TeslaContext';
+import { canvasHeightFor } from '../../utils/layout';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -39,8 +46,11 @@ class ThreeJSErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
 const HOME_POS = new THREE.Vector3(-3.6, 2.2, -5.85);
 const HOME_LOOK = new THREE.Vector3(0, 0.6, 0);
-const TOP_POS = new THREE.Vector3(0, 11.5, 0.001);
-const TOP_LOOK = new THREE.Vector3(0, 0, 0);
+// Top-down full view: car fills ~67% of the canvas (≈52% of screen height,
+// i.e. 25% smaller than the previous pass). Look target shifted toward the
+// tail so the car sits a bit higher, leaving room for the bottom sheet.
+const TOP_POS = new THREE.Vector3(0, 11.75, 0.001);
+const TOP_LOOK = new THREE.Vector3(0, 0, 0.65);
 const DRIVE_POS = new THREE.Vector3(-3.5, 1.5, -6.5);
 const DRIVE_LOOK = new THREE.Vector3(0, 0.7, -1);
 const UP_Y = new THREE.Vector3(0, 1, 0);
@@ -91,9 +101,15 @@ const CameraRig: React.FC = () => {
 
 const ThreeJSCanvasContent: React.FC = () => {
   const { state, viewMode, toggleFrunk, toggleTrunk, toggleLock } = useTesla();
+  const [airflowGeom, setAirflowGeom] = useState<AirflowGeom | null>(null);
+  const [pillAnchors, setPillAnchors] = useState<CarPillAnchors | null>(null);
+  const airflowActive = viewMode === 'home' && state.climateActive;
+  const { height: windowH } = useWindowDimensions();
+  const canvasHeight = canvasHeightFor(viewMode, windowH);
+  const pillsActive = viewMode === 'controls';
 
   return (
-    <View style={styles.canvasContainer}>
+    <View style={[styles.canvasContainer, { height: canvasHeight }]}>
       <Canvas
         style={styles.canvas}
         camera={{ position: [-3.6, 2.2, -5.85], fov: 35 }}
@@ -103,22 +119,58 @@ const ThreeJSCanvasContent: React.FC = () => {
         <React.Suspense fallback={null}>
           <Tesla3DCarModel />
         </React.Suspense>
+        <CabinAnchorProbe active={airflowActive} onChange={setAirflowGeom} />
+        <CarAnchorProbe active={pillsActive} onChange={setPillAnchors} />
       </Canvas>
 
-      {/* Touch Overlays for Top-Down Controls View */}
-      {viewMode === 'controls' && (
+      {/* Climate airflow, clipped to the projected cabin interior */}
+      {airflowActive && airflowGeom && (
+        <CabinAirflowOverlay
+          geom={airflowGeom}
+          heating={state.isHeating}
+          speed={state.fanSpeed}
+        />
+      )}
+
+      {/* Pills anchored on the frunk / trunk / roof of the car itself */}
+      {pillsActive && pillAnchors && (
         <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-          <TouchableOpacity style={[styles.actionPill, styles.frunkPill]} onPress={toggleFrunk}>
-            <Text style={styles.pillText}>{state.frunkOpen ? 'Close' : 'Open'}</Text>
-          </TouchableOpacity>
+          <View
+            style={[
+              styles.pillAnchor,
+              { left: pillAnchors.frunk.x, top: pillAnchors.frunk.y, marginLeft: -44, marginTop: -17 },
+            ]}
+          >
+            <TouchableOpacity style={styles.actionPill} onPress={toggleFrunk}>
+              <Text style={styles.pillText}>{state.frunkOpen ? 'Close' : 'Open'}</Text>
+            </TouchableOpacity>
+          </View>
 
-          <TouchableOpacity style={styles.lockOverlayPill} onPress={toggleLock}>
-            <Text style={styles.lockIconText}>{state.isLocked ? '🔒' : '🔓'}</Text>
-          </TouchableOpacity>
+          <View
+            style={[
+              styles.pillAnchor,
+              { left: pillAnchors.trunk.x, top: pillAnchors.trunk.y, marginLeft: -44, marginTop: -17 },
+            ]}
+          >
+            <TouchableOpacity style={styles.actionPill} onPress={toggleTrunk}>
+              <Text style={styles.pillText}>{state.trunkOpen ? 'Close' : 'Open'}</Text>
+            </TouchableOpacity>
+          </View>
 
-          <TouchableOpacity style={[styles.actionPill, styles.trunkPill]} onPress={toggleTrunk}>
-            <Text style={styles.pillText}>{state.trunkOpen ? 'Close' : 'Open'}</Text>
-          </TouchableOpacity>
+          <View
+            style={[
+              styles.pillAnchor,
+              { left: pillAnchors.lock.x, top: pillAnchors.lock.y, marginLeft: -22, marginTop: -22 },
+            ]}
+          >
+            <TouchableOpacity style={styles.lockOverlayPill} onPress={toggleLock}>
+              {state.isLocked ? (
+                <Lock color="#FFFFFF" size={20} strokeWidth={1.8} />
+              ) : (
+                <Unlock color="#FFFFFF" size={20} strokeWidth={1.8} />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     </View>
@@ -143,21 +195,20 @@ const styles = StyleSheet.create({
   canvas: {
     flex: 1,
   },
-  actionPill: {
+  pillAnchor: {
     position: 'absolute',
-    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionPill: {
+    width: 88,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: 'rgba(28, 28, 30, 0.85)',
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  frunkPill: {
-    top: 30,
-  },
-  trunkPill: {
-    bottom: 30,
   },
   pillText: {
     color: '#FFFFFF',
@@ -165,9 +216,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   lockOverlayPill: {
-    position: 'absolute',
-    top: '45%',
-    alignSelf: 'center',
     width: 44,
     height: 44,
     borderRadius: 22,
@@ -176,8 +224,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  lockIconText: {
-    fontSize: 20,
   },
 });

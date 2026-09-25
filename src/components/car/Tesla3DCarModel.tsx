@@ -109,22 +109,24 @@ export const Tesla3DCarModel: React.FC = () => {
 
   const shadowTexture = useMemo(() => createShadowTexture(), []);
 
-  const doorPivots = useMemo(() => {
-    const pivots: Partial<Record<DoorKey, THREE.Object3D>> = {};
+  const pivotsRef = useRef<{
+    doors: Partial<Record<DoorKey, THREE.Object3D>>;
+    frunk?: THREE.Object3D;
+    trunk?: THREE.Object3D;
+  }>({ doors: {} });
+
+  useEffect(() => {
+    const doors: Partial<Record<DoorKey, THREE.Object3D>> = {};
     (Object.keys(DOOR_PIVOTS) as DoorKey[]).forEach((key) => {
       const node = scene?.getObjectByName(DOOR_PIVOTS[key].nodeName);
-      if (node) pivots[key] = node;
+      if (node) doors[key] = node;
     });
-    return pivots;
-  }, [scene]);
-
-  const lidPivots = useMemo(
-    () => ({
+    pivotsRef.current = {
+      doors,
       frunk: scene?.getObjectByName('bonnet_dummy'),
       trunk: scene?.getObjectByName('boot_dummy'),
-    }),
-    [scene]
-  );
+    };
+  }, [scene]);
 
   useEffect(() => {
     console.log('TESLA3DDEBUG scene?', !!scene, 'children', scene?.children?.length);
@@ -169,26 +171,27 @@ export const Tesla3DCarModel: React.FC = () => {
 
   // Smooth door swing / driving tilt animation
   useFrame((_, delta) => {
+    const pivots = pivotsRef.current;
     const doorT = 1 - Math.exp(-12 * delta);
-    (Object.keys(doorPivots) as DoorKey[]).forEach((key) => {
-      const pivot = doorPivots[key];
+    (Object.keys(DOOR_PIVOTS) as DoorKey[]).forEach((key) => {
+      const pivot = pivots.doors[key];
       if (!pivot) return;
       const target = state.doors[key] ? DOOR_OPEN_ANGLE * DOOR_PIVOTS[key].sign : 0;
       pivot.rotation.z = THREE.MathUtils.lerp(pivot.rotation.z, target, doorT);
     });
 
-    if (lidPivots.frunk) {
+    if (pivots.frunk) {
       const target = state.frunkOpen ? LID_OPEN_ANGLE : 0;
-      lidPivots.frunk.rotation.x = THREE.MathUtils.lerp(
-        lidPivots.frunk.rotation.x,
+      pivots.frunk.rotation.x = THREE.MathUtils.lerp(
+        pivots.frunk.rotation.x,
         target,
         doorT
       );
     }
-    if (lidPivots.trunk) {
+    if (pivots.trunk) {
       const target = state.trunkOpen ? -LID_OPEN_ANGLE : 0;
-      lidPivots.trunk.rotation.x = THREE.MathUtils.lerp(
-        lidPivots.trunk.rotation.x,
+      pivots.trunk.rotation.x = THREE.MathUtils.lerp(
+        pivots.trunk.rotation.x,
         target,
         doorT
       );
@@ -215,7 +218,7 @@ export const Tesla3DCarModel: React.FC = () => {
 
   return (
     <>
-      <group ref={carGroupRef}>
+      <group ref={carGroupRef} name="tesla-car-root">
         {/* Lighting setup */}
         <ambientLight intensity={1.5} />
         <directionalLight position={[10, 15, 10]} intensity={2.5} castShadow />
