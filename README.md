@@ -1,4 +1,4 @@
-# Tesla App Clone 🚘
+# Tesla App Clone
 
 *Inspired by the Tesla mobile app experience.*
 
@@ -7,24 +7,24 @@ A React Native app that recreates the Tesla companion experience around a **live
 
 Built with Expo SDK 57, TypeScript, Three.js via React Native Fiber, and the React Native New Architecture.
 
-> **⚠️ Note / Disclaimer**
+> **Note / Disclaimer**
 > I do **not** have access to the official Tesla app. Everything in this project — layouts, interactions, animations, and the airflow behavior — was recreated **from scratch, based only on videos and screenshots/pictures** I found online. Tesla is a trademark of Tesla, Inc.; this is a non-commercial, educational clone with no affiliation to or endorsement from Tesla.
 
 
-### 📱 Try It Now!
+### Try It Now!
 <!-- TODO: EAS Preview APK link goes here -->
 
 *APK coming soon — assets and store build in progress.*
 
 
-## 🎥 Video Demo
+## Video Demo
 
 <!-- TODO: screen recording demo goes here (GMP/YouTube embed or GitHub user-attachments link) -->
 
 *Video demo coming soon.*
 
 
-## 📸 Screenshots
+## Screenshots
 
 <!-- TODO: uncomment when assets/demo/ images are added
 
@@ -50,7 +50,7 @@ Built with Expo SDK 57, TypeScript, Three.js via React Native Fiber, and the Rea
 ## Features
 
 
-### 🚗 Interactive 3D Vehicle
+### Interactive 3D Vehicle
 - **Real Model 3 geometry** — the factory GLB is auto-fitted to a fixed length so every camera framing is deterministic
 - **Tap to operate** — raycast taps on the model open/close each door, the frunk, and the trunk (verified by a live `TESLA3DDEBUG tap` log)
 - **Smooth mechanical animation** — door pivots, frunk and trunk lids swing with exponential damping tuned per mechanism
@@ -58,7 +58,7 @@ Built with Expo SDK 57, TypeScript, Three.js via React Native Fiber, and the Rea
 - **Four camera modes** — home perspective, top-down controls, top-down climate, and a driving view, all transitioned with frame-rate-independent easing
 
 
-### ❄️ Climate & Airflow (Spec-Accurate)
+### Climate & Airflow (Spec-Accurate)
 - **Full-screen climate** — temperature stepper, cooling/heating status pill, fan speed 1–10, defrost, and 5-zone seat heaters
 - **Volumetric airflow mist** — dual rounded plumes that originate at the dash vent slot, run over the front seat cushions, and die out at the headrests, with a visible recess along the center console
 - **Fixed mask, moving texture** — the plume silhouette is static while ripple strokes translate continuously from vent to rear at a speed driven by the fan setting
@@ -72,25 +72,25 @@ Built with Expo SDK 57, TypeScript, Three.js via React Native Fiber, and the Rea
 - **Defrost behaves like the real car** — turning it on forces the HVAC system on and redirects the airflow toward the windshield
 
 
-### 🎛️ Controls
+### Controls
 - **Bottom sheet** — collapsed shows 7 bare outline quick-action icons (frunk, trunk, lock, lights, horn, start, HomeLink); tap the handle to expand into state cards and the labeled strip
 - **On-car anchored pills** — Open/Close chips and the lock icon are projected onto the actual frunk, trunk, and roof of the 3D model through the live camera, so they follow the car as it zooms
 - **Nav-safe spacing** — sheet content respects gesture/button navigation insets on Android and the home indicator on iOS
 
 
-### 🏠 Home
+### Home
 - **Quick actions** — lock toggle, climate, controls
 - **Fan icon spins** at a tempo derived from the current fan speed while climate is active
 - **Media mini player** and a **navigation menu list** for mode switching
 
 
-### 🕹️ Driving
+### Driving
 - **Speed controls** — DRIVE / STOP presets plus ±15 MPH steppers with a live gauge
 - **Paint picker** — five colors, applied instantly to the 3D body
 - **Headlight toggle** and a subtle motion pitch while "driving"
 
 
-### 🔄 One Shared State
+### One Shared State
 Every climate edit — power, target temperature, fan speed, defrost, seat heaters — lives in a single React context, so the home fan spin, the cabin mist, the status pills, and the full-screen controls always agree. The AC starts **on and in cooling** by default.
 
 
@@ -187,12 +187,12 @@ Scan the QR code with Expo Go, or press `a` for Android / `i` for iOS simulator.
 ---
 
 
-## Engineering Log 🔧
+## Engineering Log
 
 *Real problems hit while building this app, ranked by how hard they were to crack — and exactly how each one was solved.*
 
 
-### Rank 1: ⭐⭐⭐⭐⭐ (Extreme) — The Airflow Was Invisible: 3D Mist vs. an Opaque Car
+### Rank 1 (Extreme) — The Airflow Was Invisible: 3D Mist vs. an Opaque Car
 
 
 #### The Problem
@@ -217,7 +217,7 @@ A stable, feathered mist that looks like it lives in the cabin from every angle 
 ---
 
 
-### Rank 2: ⭐⭐⭐⭐⭐ (Extreme) — Overshoot & Slow Motion: The Frame-Delta Lerp Trap
+### Rank 2 (Extreme) — Overshoot & Slow Motion: The Frame-Delta Lerp Trap
 
 
 #### The Problem
@@ -248,7 +248,7 @@ Identical, buttery motion on 60Hz and 120Hz devices alike — the camera glides 
 ---
 
 
-### Rank 3: ⭐⭐⭐⭐ (High) — Spec-Perfect Anchors: The "Dash" That Was Actually the B-Pillar
+### Rank 3 (High) — Spec-Perfect Anchors: The "Dash" That Was Actually the B-Pillar
 
 
 #### The Problem
@@ -274,7 +274,7 @@ Airflow that emerges exactly at the vent, hugs the correct anatomy of the car, a
 ---
 
 
-### Rank 4: ⭐⭐⭐ (Medium) — Vanishing Quick Actions: A Flex Child Clipped to Negative Y
+### Rank 4 (Medium) — Vanishing Quick Actions: A Flex Child Clipped to Negative Y
 
 
 #### The Problem
