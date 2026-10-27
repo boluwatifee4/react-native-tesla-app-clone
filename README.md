@@ -19,20 +19,30 @@ Built with Expo SDK 57, TypeScript, Three.js via React Native Fiber, and the Rea
 
 ## Video Demo
 
-<!-- TODO: screen recording demo goes here (GMP/YouTube embed or GitHub user-attachments link) -->
 
-*Video demo coming soon.*
+
+https://github.com/user-attachments/assets/4862ce35-2e33-41b5-8c3b-c64282c13d6e
+
+
 
 
 ## Screenshots
 
-<p align="center">
-<img width="850" height="1512" alt="image" src="https://github.com/user-attachments/assets/94ea228a-8de6-45e7-a61d-ce65898271ca" />
-<img width="850" height="1512" alt="image" src="https://github.com/user-attachments/assets/29ae31d4-828e-42e1-a83e-e41c076a97f8" />
-<img width="850" height="1512" alt="image" src="https://github.com/user-attachments/assets/46896d71-df7a-40bf-ab21-4369882598f3" />
-</p>
----
-
+<table align="center">
+  <tr>
+    <td align="center">
+      <img width="350" alt="image 1" src="https://github.com/user-attachments/assets/94ea228a-8de6-45e7-a61d-ce65898271ca" />
+    </td>
+    <td align="center">
+      <img width="350" alt="image 2" src="https://github.com/user-attachments/assets/29ae31d4-828e-42e1-a83e-e41c076a97f8" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2">
+      <img width="350" alt="image 3" src="https://github.com/user-attachments/assets/46896d71-df7a-40bf-ab21-4369882598f3" />
+    </td>
+  </tr>
+</table>
 
 ## Features
 
